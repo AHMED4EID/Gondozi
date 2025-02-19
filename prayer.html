@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>مواقيت الصلاة</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0; padding: 0;
+      background: #f9f5ee;
+      font-family: sans-serif;
+      color: #333;
+      text-align: center;
+    }
+    header, footer {
+      background: #5d4037;
+      color: #fff;
+      padding: 10px;
+    }
+    header h1 {
+      margin: 0; font-size: 1.4rem;
+    }
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      padding: 15px;
+    }
+    button {
+      background: #795548;
+      color: #fff;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover {
+      background: #6d4c41;
+    }
+    .countdown {
+      font-size: 1.2rem;
+      color: #d32f2f;
+      margin: 10px 0;
+    }
+    table {
+      margin: 0 auto;
+      border-collapse: collapse;
+      width: 90%;
+      max-width: 400px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      font-size: 1rem;
+    }
+    th {
+      background: #eee;
+    }
+    .note {
+      font-size: 0.9rem;
+      color: #666;
+      margin-top: 10px;
+    }
+
+    /* شريط التنقل السفلي */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #5d4037;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 8px 0;
+      z-index: 999;
+    }
+    .bottom-nav a {
+      color: #fff;
+      text-decoration: none;
+      font-size: 0.9rem;
+      padding: 5px 10px;
+    }
+    .bottom-nav a.active {
+      border-bottom: 2px solid #fff;
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        margin: 10px; 
+        padding: 10px;
+      }
+      table {
+        font-size: 0.9rem;
+      }
+      .bottom-nav a {
+        font-size: 0.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>مواقيت الصلاة</h1>
+  </header>
+
+  <div class="container">
+    <p>يجب السماح للمتصفح بتحديد موقعك لجلب مواقيت الصلاة حسب مدينتك</p>
+    <button id="getLocationBtn">الحصول على موقعي</button>
+    <div id="prayerTimesSection" style="display:none;">
+      <h2>المواقيت</h2>
+      <div id="countdown" class="countdown"></div>
+      <table id="prayerTable">
+        <thead>
+          <tr>
+            <th>الفجر</th>
+            <th>الشروق</th>
+            <th>الظهر</th>
+            <th>العصر</th>
+            <th>المغرب</th>
+            <th>العشاء</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td id="fajr"></td>
+            <td id="sunrise"></td>
+            <td id="dhuhr"></td>
+            <td id="asr"></td>
+            <td id="maghrib"></td>
+            <td id="isha"></td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="note">*سيتم تشغيل الأذان تلقائيًا عند دخول وقت الصلاة (قد تحتاج ضغط الشاشة أولًا للسماح بالصوت)</p>
+    </div>
+  </div>
+
+  <footer>
+    <p>جميع الحقوق محفوظة &copy; 2025</p>
+  </footer>
+
+  <!-- شريط التنقل السفلي -->
+  <nav class="bottom-nav">
+    <a href="quran.html">القرآن</a>
+    <a href="azkar.html">الأذكار</a>
+    <a href="prayer.html" class="active">الصلوات</a>
+    <a href="settings.html">الإعدادات</a>
+  </nav>
+
+  <!-- ملف صوت الأذان (يمكن تغييره) -->
+  <audio id="adhanAudio" src="https://server8.mp3quran.net/adhan/Makkah_Adhan1.mp3"></audio>
+
+  <script>
+    const getLocationBtn = document.getElementById('getLocationBtn');
+    const prayerTimesSection = document.getElementById('prayerTimesSection');
+    const countdownEl = document.getElementById('countdown');
+
+    const fajrEl = document.getElementById('fajr');
+    const sunriseEl = document.getElementById('sunrise');
+    const dhuhrEl = document.getElementById('dhuhr');
+    const asrEl = document.getElementById('asr');
+    const maghribEl = document.getElementById('maghrib');
+    const ishaEl = document.getElementById('isha');
+
+    let countdownInterval = null;
+    const adhanAudio = document.getElementById('adhanAudio');
+
+    getLocationBtn.addEventListener('click', () => {
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(onLocationSuccess, onLocationError);
+      } else {
+        alert('المتصفح لا يدعم تحديد الموقع.');
+      }
+    });
+
+    function onLocationSuccess(position) {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      fetchPrayerTimes(lat, lng);
+    }
+
+    function onLocationError(error) {
+      alert('تعذر الحصول على الموقع: ' + error.message);
+    }
+
+    async function fetchPrayerTimes(latitude, longitude) {
+      try {
+        const url = `https://api.aladhan.com/v1/timings?latitude=${latitude}&longitude=${longitude}&method=2`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.code === 200) {
+          const timings = data.data.timings;
+          // ملء الجدول
+          fajrEl.textContent = timings.Fajr;
+          sunriseEl.textContent = timings.Sunrise;
+          dhuhrEl.textContent = timings.Dhuhr;
+          asrEl.textContent = timings.Asr;
+          maghribEl.textContent = timings.Maghrib;
+          ishaEl.textContent = timings.Isha;
+
+          // إظهار قسم المواقيت
+          prayerTimesSection.style.display = 'block';
+
+          // تشغيل العد التنازلي
+          if (countdownInterval) {
+            clearInterval(countdownInterval);
+          }
+          startCountdown(timings);
+        } else {
+          alert('حدث خطأ في جلب مواقيت الصلاة.');
+        }
+      } catch (err) {
+        alert('خطأ في الاتصال بالإنترنت أو API');
+        console.error(err);
+      }
+    }
+
+    function startCountdown(timings) {
+      const prayerOrder = ['Fajr','Dhuhr','Asr','Maghrib','Isha'];
+      const now = new Date();
+
+      const parseTime = (timeStr) => {
+        const [h, m] = timeStr.split(':');
+        const d = new Date();
+        d.setHours(h, m, 0, 0);
+        return d;
+      };
+
+      let upcomingPrayer = null;
+      let upcomingTime = null;
+
+      for (let prayer of prayerOrder) {
+        const pTime = parseTime(timings[prayer]);
+        if (pTime > now) {
+          upcomingPrayer = prayer;
+          upcomingTime = pTime;
+          break;
+        }
+      }
+      // لو لم نجد صلاة قادمة اليوم، نعتبرها الفجر لليوم التالي
+      if (!upcomingPrayer) {
+        upcomingPrayer = 'Fajr';
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const [h,m] = timings.Fajr.split(':');
+        tomorrow.setHours(h, m, 0, 0);
+        upcomingTime = tomorrow;
+      }
+
+      countdownInterval = setInterval(() => {
+        const diff = upcomingTime - new Date();
+        if (diff <= 0) {
+          clearInterval(countdownInterval);
+          countdownEl.textContent = `حان الآن وقت صلاة ${translatePrayer(upcomingPrayer)}!`;
+          // تشغيل الأذان تلقائيًا
+          adhanAudio.currentTime = 0;
+          adhanAudio.play().catch(err => {
+            console.log('تعذر تشغيل الأذان تلقائيًا:', err);
+          });
+          return;
+        }
+        const hrs = Math.floor(diff / 1000 / 60 / 60);
+        const mins = Math.floor((diff / 1000 / 60) % 60);
+        const secs = Math.floor((diff / 1000) % 60);
+        countdownEl.textContent = `الوقت المتبقي لصلاة ${translatePrayer(upcomingPrayer)}: ${hrs} ساعة و ${mins} دقيقة و ${secs} ثانية`;
+      }, 1000);
+    }
+
+    function translatePrayer(prayer) {
+      switch(prayer) {
+        case 'Fajr': return 'الفجر';
+        case 'Dhuhr': return 'الظهر';
+        case 'Asr': return 'العصر';
+        case 'Maghrib': return 'المغرب';
+        case 'Isha': return 'العشاء';
+        default: return prayer;
+      }
+    }
+  </script>
+</body>
+</html>

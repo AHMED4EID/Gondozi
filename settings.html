@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>الإعدادات</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- خط عربي جميل -->
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Amiri&display=swap" rel="stylesheet">
+
+  <style>
+    /* RESET وتنسيق أساسي */
+    * {
+      box-sizing: border-box;
+      font-family: 'Amiri', serif;
+    }
+    body {
+      margin: 0; padding: 0;
+      background: #f9f5ee;
+      color: #333;
+      transition: background 0.3s, color 0.3s;
+    }
+    /* الوضع الليلي */
+    body.dark-mode {
+      background: #2b2b2b;
+      color: #f9f5ee;
+    }
+
+    header, footer {
+      background: #5d4037;
+      color: #fff;
+      text-align: center;
+      padding: 10px;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.4rem;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      padding: 20px;
+      transition: background 0.3s, color 0.3s;
+    }
+    body.dark-mode .container {
+      background: #3b3b3b;
+      color: #fff;
+    }
+
+    .setting-group {
+      margin-bottom: 20px;
+    }
+    .setting-group label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: inherit;
+    }
+    select, input[type='checkbox'] {
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+      width: 100%;
+      max-width: 100%;
+    }
+    /* عند الوضع الليلي */
+    body.dark-mode select,
+    body.dark-mode input[type='checkbox'] {
+      background: #555;
+      color: #fff;
+      border-color: #777;
+    }
+
+    .toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+    .toggle-btn span {
+      margin-right: 10px;
+    }
+    /* زر حفظ */
+    button {
+      background: #795548;
+      color: #fff;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #6d4c41;
+    }
+
+    /* شريط التنقل السفلي */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #5d4037;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 8px 0;
+      z-index: 999;
+    }
+    .bottom-nav a {
+      color: #fff;
+      text-decoration: none;
+      font-size: 0.9rem;
+      padding: 5px 10px;
+    }
+    .bottom-nav a.active {
+      border-bottom: 2px solid #fff;
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        margin: 10px; 
+        padding: 10px;
+      }
+      label { font-size: 1rem; }
+      .bottom-nav a {
+        font-size: 0.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>الإعدادات</h1>
+  </header>
+
+  <div class="container">
+    <!-- الوضع الليلي -->
+    <div class="setting-group">
+      <label>الوضع الليلي</label>
+      <div class="toggle-btn" onclick="toggleDarkMode()">
+        <span id="darkModeStatus">إيقاف</span>
+        <input type="checkbox" id="darkModeSwitch" style="transform: scale(1.3);" />
+      </div>
+    </div>
+
+    <!-- طريقة حساب مواقيت الصلاة -->
+    <div class="setting-group">
+      <label for="methodSelect">طريقة حساب مواقيت الصلاة</label>
+      <select id="methodSelect">
+        <!-- بعض الطرق الشهيرة، يمكنك إضافة المزيد -->
+        <option value="0">جامعة أم القرى (مكة)</option>
+        <option value="1">الهيئة العامة المصرية للمساحة</option>
+        <option value="2" selected>رابطة العالم الإسلامي</option>
+        <option value="3">أمريكا الشمالية</option>
+        <option value="4">مسجد باريس</option>
+        <option value="5">رابطة العالم الإسلامي (قديم)</option>
+      </select>
+    </div>
+
+    <!-- تشغيل/إيقاف الإشعارات -->
+    <div class="setting-group">
+      <label>الإشعارات</label>
+      <div class="toggle-btn" onclick="toggleNotifications()">
+        <span id="notifStatus">إيقاف</span>
+        <input type="checkbox" id="notifSwitch" style="transform: scale(1.3);" />
+      </div>
+    </div>
+
+    <!-- اختيار القارئ -->
+    <div class="setting-group">
+      <label for="reciterSelect">اختيار القارئ</label>
+      <select id="reciterSelect">
+        <!-- أمثلة لبعض القراء المشهورين -->
+        <option value="ar.alafasy" selected>مشاري العفاسي</option>
+        <option value="ar.abdurrahmaansudais">عبد الرحمن السديس</option>
+        <option value="ar.mahermuaiqly">ماهر المعيقلي</option>
+        <option value="ar.husary">محمود خليل الحصري</option>
+        <option value="ar.minshawi">محمد صديق المنشاوي</option>
+        <option value="ar.basitmurattal">عبد الباسط عبد الصمد (مرتل)</option>
+        <option value="ar.basitmujawwad">عبد الباسط عبد الصمد (مجود)</option>
+        <option value="ar.shuraym">سعود الشريم</option>
+        <option value="ar.ahmedajamy">أحمد العجمي</option>
+        <option value="ar.afasyrash">مشاري راشد (رواية حفص)</option>
+        <!-- يمكنك إضافة المزيد -->
+      </select>
+    </div>
+
+    <!-- زر حفظ -->
+    <button onclick="saveSettings()">حفظ الإعدادات</button>
+  </div>
+
+  <footer>
+    <p>جميع الحقوق محفوظة &copy; 2025</p>
+  </footer>
+
+  <!-- شريط التنقل السفلي (لا توجد صفحة رئيسية، لذلك أربع روابط فقط) -->
+  <nav class="bottom-nav">
+    <a href="quran.html">القرآن</a>
+    <a href="azkar.html">الأذكار</a>
+    <a href="prayer.html">الصلوات</a>
+    <a href="settings.html" class="active">الإعدادات</a>
+  </nav>
+
+  <script>
+    // مفاتيح التخزين في localStorage
+    const DARK_MODE_KEY = 'SETTINGS_DARK_MODE';
+    const METHOD_KEY = 'SETTINGS_PRAYER_METHOD';
+    const NOTIF_KEY = 'SETTINGS_NOTIFICATIONS';
+    const RECITER_KEY = 'SETTINGS_RECITER';
+
+    // عناصر DOM
+    const darkModeSwitch = document.getElementById('darkModeSwitch');
+    const darkModeStatus = document.getElementById('darkModeStatus');
+    const methodSelect = document.getElementById('methodSelect');
+    const notifSwitch = document.getElementById('notifSwitch');
+    const notifStatus = document.getElementById('notifStatus');
+    const reciterSelect = document.getElementById('reciterSelect');
+
+    // عند تحميل الصفحة، نقرأ الإعدادات من localStorage ونحدّث الواجهة
+    window.addEventListener('load', () => {
+      loadSettings();
+    });
+
+    function loadSettings() {
+      // الوضع الليلي
+      const darkModeVal = localStorage.getItem(DARK_MODE_KEY);
+      if (darkModeVal === 'true') {
+        document.body.classList.add('dark-mode');
+        darkModeSwitch.checked = true;
+        darkModeStatus.textContent = 'تشغيل';
+      } else {
+        document.body.classList.remove('dark-mode');
+        darkModeSwitch.checked = false;
+        darkModeStatus.textContent = 'إيقاف';
+      }
+
+      // طريقة الحساب
+      const methodVal = localStorage.getItem(METHOD_KEY);
+      if (methodVal) {
+        methodSelect.value = methodVal;
+      }
+
+      // الإشعارات
+      const notifVal = localStorage.getItem(NOTIF_KEY);
+      if (notifVal === 'true') {
+        notifSwitch.checked = true;
+        notifStatus.textContent = 'تشغيل';
+      } else {
+        notifSwitch.checked = false;
+        notifStatus.textContent = 'إيقاف';
+      }
+
+      // القارئ
+      const reciterVal = localStorage.getItem(RECITER_KEY);
+      if (reciterVal) {
+        reciterSelect.value = reciterVal;
+      }
+    }
+
+    // دالة لحفظ الإعدادات
+    function saveSettings() {
+      // الوضع الليلي
+      localStorage.setItem(DARK_MODE_KEY, darkModeSwitch.checked ? 'true' : 'false');
+      // طريقة الحساب
+      localStorage.setItem(METHOD_KEY, methodSelect.value);
+      // الإشعارات
+      localStorage.setItem(NOTIF_KEY, notifSwitch.checked ? 'true' : 'false');
+      // القارئ
+      localStorage.setItem(RECITER_KEY, reciterSelect.value);
+
+      alert('تم حفظ الإعدادات بنجاح!');
+    }
+
+    // التبديل اليدوي للوضع الليلي
+    function toggleDarkMode() {
+      darkModeSwitch.checked = !darkModeSwitch.checked; // عكس الحالة
+      if (darkModeSwitch.checked) {
+        document.body.classList.add('dark-mode');
+        darkModeStatus.textContent = 'تشغيل';
+      } else {
+        document.body.classList.remove('dark-mode');
+        darkModeStatus.textContent = 'إيقاف';
+      }
+    }
+
+    // التبديل اليدوي للإشعارات
+    function toggleNotifications() {
+      notifSwitch.checked = !notifSwitch.checked; // عكس الحالة
+      if (notifSwitch.checked) {
+        notifStatus.textContent = 'تشغيل';
+      } else {
+        notifStatus.textContent = 'إيقاف';
+      }
+    }
+  </script>
+</body>
+</html>
